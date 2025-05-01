@@ -1,0 +1,374 @@
+#src/docs/openapi.yaml
+openapi: 3.0.0
+info:
+  title: Crownlist API
+  version: 1.0.0
+  description: API for managing users, products, orders, transactions, and disputes.
+servers:
+  - url: http://localhost:3000 # Adjust to your API's base URL
+paths:
+  /users/register:
+    post:
+      summary: Register a new user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterUser'
+      responses:
+        '201':
+          description: User registered successfully.
+        '400':
+          description: Bad request (validation errors).
+        '500':
+          description: Internal server error.
+  /users/login:
+    post:
+      summary: Login user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginUser'
+      responses:
+        '200':
+          description: Login successful.
+        '400':
+          description: Bad request (invalid credentials).
+        '500':
+          description: Internal server error.
+  /users/profile:
+    get:
+      summary: Get user profile
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: User profile retrieved successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserProfile'
+        '401':
+          description: Unauthorized.
+        '500':
+          description: Internal server error.
+    patch:
+      summary: Update user profile
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateUserProfile'
+      responses:
+        '200':
+          description: User profile updated successfully.
+        '400':
+          description: Bad request (validation errors).
+        '401':
+          description: Unauthorized.
+        '500':
+          description: Internal server error.
+  /users/{userId}:
+    delete:
+      summary: Delete user by ID (admin only)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: User deleted successfully.
+        '401':
+          description: Unauthorized.
+        '403':
+          description: Forbidden.
+        '404':
+          description: User not found.
+        '500':
+          description: Internal server error.
+    get:
+      summary: Get user by ID (admin only)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: User retrieved successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserProfile'
+        '401':
+          description: Unauthorized.
+        '403':
+          description: Forbidden.
+        '404':
+          description: User not found.
+        '500':
+          description: Internal server error.
+  /products:
+    post:
+      summary: Create a product
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProductInput'
+      responses:
+        '201':
+          description: Product created successfully.
+        '400':
+          description: Bad request (validation errors).
+        '401':
+          description: Unauthorized.
+        '500':
+          description: Internal server error.
+  /orders:
+    post:
+      summary: Create an order
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OrderInput'
+      responses:
+        '201':
+          description: Order created successfully.
+        '400':
+          description: Bad request (validation errors).
+        '401':
+          description: Unauthorized.
+        '500':
+          description: Internal server error.
+  /orders/{orderId}/complete:
+    patch:
+      summary: Complete an order
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: orderId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Order completed successfully.
+        '400':
+          description: Bad request (validation errors).
+        '401':
+          description: Unauthorized.
+        '500':
+          description: Internal server error.
+  /transactions:
+    post:
+      summary: Create a transaction
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TransactionInput'
+      responses:
+        '201':
+          description: Transaction created successfully.
+        '400':
+          description: Bad request (validation errors).
+        '401':
+          description: Unauthorized.
+        '500':
+          description: Internal server error.
+  /transactions/{orderId}:
+    get:
+      summary: Get transactions by order ID
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: orderId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Transactions retrieved successfully.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Transaction'
+        '401':
+          description: Unauthorized.
+        '500':
+          description: Internal server error.
+  /disputes:
+    post:
+      summary: Create a dispute
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DisputeInput'
+      responses:
+        '201':
+          description: Dispute created successfully.
+        '400':
+          description: Bad request (validation errors).
+        '401':
+          description: Unauthorized.
+        '500':
+          description: Internal server error.
+  /disputes/{disputeId}:
+    patch:
+      summary: Resolve a dispute
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: disputeId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DisputeResolution'
+      responses:
+        '200':
+          description: Dispute resolved successfully.
+        '400':
+          description: Bad request (validation errors).
+        '401':
+          description: Unauthorized.
+        '500':
+          description: Internal server error.
+components:
+  schemas:
+    RegisterUser:
+      type: object
+      properties:
+        username:
+          type: string
+        email:
+          type: string
+        password:
+          type: string
+    LoginUser:
+      type: object
+      properties:
+        email:
+          type: string
+        password:
+          type: string
+    UserProfile:
+      type: object
+      properties:
+        id:
+          type: string
+        username:
+          type: string
+        email:
+          type: string
+        address:
+          type: string
+        phoneNumber:
+          type: string
+    UpdateUserProfile:
+      type: object
+      properties:
+        username:
+          type: string
+        email:
+          type: string
+        address:
+          type: string
+        phoneNumber:
+          type: string
+    ProductInput:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        price:
+          type: number
+    OrderInput:
+      type: object
+      properties:
+        productId:
+          type: string
+        quantity:
+          type: integer
+        shippingAddress:
+          type: string
+    TransactionInput:
+      type: object
+      properties:
+        orderId:
+          type: string
+        paymentReference:
+          type: string
+        amount:
+          type: number
+    Transaction:
+      type: object
+      properties:
+        id:
+          type: string
+        orderId:
+          type: string
+        paymentReference:
+          type: string
+        amount:
+          type: number
+    DisputeInput:
+      type: object
+      properties:
+        orderId:
+          type: string
+        reason:
+          type: string
+    DisputeResolution:
+      type: object
+      properties:
+        resolution:
+          type: string
+        status:
+          type: string
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+security:
+  - bearerAuth: []
